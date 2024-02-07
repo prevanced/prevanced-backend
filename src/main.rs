@@ -11,10 +11,11 @@ async fn main() {
 
     // build our application with a route
     let app = Router::new()
-        // `GET /` goes to `root`
         .route("/", get(root))
-        // `POST /users` goes to `create_user`
-        .route("/register", post(register_device));
+        .route("/ping", get(ping))
+        .route("/register", post(register_device))
+        .route("/delete", post(delete_device))
+        .route("/send", post(send_notification));
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());
     let address: String = std::env::var("ADDRESS").unwrap_or_else(|_| "127.0.0.1".to_string());
@@ -32,8 +33,6 @@ async fn root() -> &'static str {
 }
 
 async fn register_device(
-    // this argument tells axum to parse the request body
-    // as JSON into a `CreateUser` type
     Json(payload): Json<DeviceRegister>,
 ) -> impl IntoResponse {
     // insert your application logic here
@@ -44,9 +43,40 @@ async fn register_device(
     (StatusCode::CREATED, Json(user))
 }
 
-// the output to our `create_user` handler
 #[derive(Debug, Serialize,  Deserialize)]
 struct DeviceRegister {
     device_id: String,
     fcm_token: String,
+}
+
+async fn delete_device(
+    Json(payload): Json<DeviceRegister>,
+) -> impl IntoResponse {
+    // insert your application logic here
+    let user = payload;
+
+    // this will be converted into a JSON response
+    // with a status code of `201 Created`
+    (StatusCode::OK, Json(user))
+}
+
+#[derive(Debug, Serialize,  Deserialize)]
+struct PushNotification {
+    title: String,
+    body: String,
+}
+
+async fn send_notification(
+    Json(payload): Json<PushNotification>,
+) -> impl IntoResponse {
+    // insert your application logic here
+    let user = payload;
+
+    // this will be converted into a JSON response
+    // with a status code of `201 Created`
+    (StatusCode::OK, Json(user))
+}
+
+async fn ping() -> &'static str {
+    "pong"
 }
