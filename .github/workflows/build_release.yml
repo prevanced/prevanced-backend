@@ -1,0 +1,73 @@
+name: Build and Release
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  native-build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            
+          # - os: windows-latest
+          #   target: x86_64-pc-windows-msvc
+          #   extension: .exe
+          
+          # - os: windows-latest
+          #   target: i686-pc-windows-msvc
+          #   extension: .exe
+          
+          # - os: windows-latest
+          #   target: aarch64-pc-windows-msvc
+          #   extension: .exe
+            
+          # - os: macos-latest
+          #   target: x86_64-apple-darwin
+            
+          # - os: macos-latest
+          #   target: aarch64-apple-darwin
+            
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        run: |
+          rustup update --no-self-update stable
+          rustup target add ${{ matrix.target }}
+          rustup default stable
+
+      - name: Setup Cache
+        uses: Swatinem/rust-cache@v2
+        env:
+          cache-name: cache-cargo-${{ matrix.target }}
+        with:
+          prefix-key: "prevanced-backend-v1"
+          shared-key: ${{ runner.os }}-cargo-
+          key: ${{ runner.os }}-cargo-${{ matrix.target }}-
+          cache-directories: |
+            C:\Users\runneradmin\.cargo
+            /Users/runner/.cargo
+        
+      - name: Build for ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Upload binaries to release
+        if: ${{ github.event_name == 'release' }}
+        run: |
+            gh release upload ${{ github.ref_name }} target/${{ matrix.target }}/release/prevanced-backend
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        

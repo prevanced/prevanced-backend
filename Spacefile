@@ -1,0 +1,13 @@
+# Spacefile Docs: https://go.deta.dev/docs/spacefile/v0
+v: 0
+micros:
+  - name: main
+    src: .
+    engine: custom
+    dev: cargo run
+    commands:
+      - curl https://www.cloudflare.com/cdn-cgi/trace/
+      - cargo build --release
+    run: ./prevanced-backend
+    include:
+      - target/release/prevanced-backend

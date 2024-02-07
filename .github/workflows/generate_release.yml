@@ -1,0 +1,34 @@
+name: Create release from version
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Cargo.toml'
+
+permissions:
+  contents: write
+
+jobs:
+  check-version-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if version exists as tag
+        id: check-version
+        run: |
+          VERSION=v$(grep -oP '^version = "\K[^"]+' Cargo.toml)
+          if git tag --list | grep -q "^$VERSION$"; then
+            echo "Tag $VERSION already exists"
+          else
+            gh release create $VERSION --generate-notes
+            echo "Created release $VERSION"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

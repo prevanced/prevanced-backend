@@ -1,0 +1,49 @@
+name: Test
+
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - "README.md"
+      - "LICENSE"
+      - "CONTRIBUTING.md"
+      - "CODE_OF_CONDUCT.md"
+      - "SECURITY.md"
+      - "PULL_REQUEST_TEMPLATE.md"
+      - "ISSUE_TEMPLATE.md"
+      - "docs/**"
+
+  pull_request:
+    branches: [ "main" ]
+    paths-ignore:
+      - "README.md"
+      - "LICENSE"
+      - "CONTRIBUTING.md"
+      - "CODE_OF_CONDUCT.md"
+      - "SECURITY.md"
+      - "PULL_REQUEST_TEMPLATE.md"
+      - "ISSUE_TEMPLATE.md"
+      - "docs/**"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Cache
+      uses: Swatinem/rust-cache@v2
+      env:
+        cache-name: cache-cargo-x86_64-unknown-linux-gnu
+      with:
+        prefix-key: "prevanced-backend-v1"
+        shared-key: ${{ runner.os }}-cargo-
+        key: ${{ runner.os }}-cargo-x86_64-unknown-linux-gnu-
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
