@@ -10,3 +10,4 @@ micros:
     run: ./server
     include:
       - server
+      - Rocket.toml
