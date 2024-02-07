@@ -19,25 +19,24 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
-            
+
           # - os: windows-latest
           #   target: x86_64-pc-windows-msvc
           #   extension: .exe
-          
+
           # - os: windows-latest
           #   target: i686-pc-windows-msvc
           #   extension: .exe
-          
+
           # - os: windows-latest
           #   target: aarch64-pc-windows-msvc
           #   extension: .exe
-            
+
           # - os: macos-latest
           #   target: x86_64-apple-darwin
-            
+
           # - os: macos-latest
           #   target: aarch64-apple-darwin
-            
 
     steps:
       - name: Checkout code
@@ -60,14 +59,29 @@ jobs:
           cache-directories: |
             C:\Users\runneradmin\.cargo
             /Users/runner/.cargo
-        
+
       - name: Build for ${{ matrix.target }}
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Upload binaries to release
         if: ${{ github.event_name == 'release' }}
         run: |
-            gh release upload ${{ github.ref_name }} target/${{ matrix.target }}/release/prevanced-backend
+          gh release upload ${{ github.ref_name }} target/${{ matrix.target }}/release/prevanced-backend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: native-build
+    if: github.event_name == 'release'
+    steps:
+      - name: Publish server
+        run: |
+          git config --global user.email "prevanced.app@gmail.com"
+          git config --global user.name "PreVanced"
+          git clone https://prevanced:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/prevanced/notification
+          cd notification
+          sed -i 's#http://github.com/prevanced/prevanced-backend/releases/download/v[0-9]\+\.[0-9]\+\.[0-9]\+/prevanced-backend#http://github.com/prevanced/prevanced-backend/releases/download/${{ github.ref_name }}/prevanced-backend#' Dockerfile
+          git add Dockerfile
+          git commit -m "Update prevanced-backend to ${{ github.ref_name }}"
+          git push origin main
