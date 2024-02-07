@@ -66,7 +66,8 @@ jobs:
       - name: Upload binaries to release
         if: ${{ github.event_name == 'release' }}
         run: |
-          gh release upload ${{ github.ref_name }} target/${{ matrix.target }}/release/prevanced-backend
+          mv target/${{ matrix.target }}/release/prevanced-backend target/${{ matrix.target }}/release/prevanced-backend-${{ github.ref_name }}
+          gh release upload ${{ github.ref_name }} target/${{ matrix.target }}/release/prevanced-backend-${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -81,7 +82,8 @@ jobs:
           git config --global user.name "PreVanced"
           git clone https://prevanced:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/prevanced/notification
           cd notification
-          sed -i 's#http://github.com/prevanced/prevanced-backend/releases/download/v[0-9]\+\.[0-9]\+\.[0-9]\+/prevanced-backend#http://github.com/prevanced/prevanced-backend/releases/download/${{ github.ref_name }}/prevanced-backend#' Dockerfile
+          sed -E 's/v[0-9]+\.[0-9]+\.[0-9]+/${{ github.ref_name }}/g' Dockerfile > temp_Dockerfile
+          mv temp_Dockerfile Dockerfile
           git add Dockerfile
           git commit -m "Update prevanced-backend to ${{ github.ref_name }}"
           git push origin main
