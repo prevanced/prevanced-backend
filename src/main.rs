@@ -1,14 +1,14 @@
 use axum::{
-    http::StatusCode,
-    response::IntoResponse,
     routing::{get, post},
-    Json, Router,
+    Router,
 };
-use serde::{Deserialize, Serialize};
+mod handlers;
+mod types;
+
+use handlers::*;
 
 #[tokio::main]
 async fn main() {
-
     // build our application with a route
     let app = Router::new()
         .route("/", get(root))
@@ -25,58 +25,4 @@ async fn main() {
         .unwrap();
     println!("listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
-}
-
-// basic handler that responds with a static string
-async fn root() -> &'static str {
-    "Server is up and running!"
-}
-
-async fn register_device(
-    Json(payload): Json<DeviceRegister>,
-) -> impl IntoResponse {
-    // insert your application logic here
-    let user = payload;
-
-    // this will be converted into a JSON response
-    // with a status code of `201 Created`
-    (StatusCode::CREATED, Json(user))
-}
-
-#[derive(Debug, Serialize,  Deserialize)]
-struct DeviceRegister {
-    device_id: String,
-    fcm_token: String,
-}
-
-async fn delete_device(
-    Json(payload): Json<DeviceRegister>,
-) -> impl IntoResponse {
-    // insert your application logic here
-    let user = payload;
-
-    // this will be converted into a JSON response
-    // with a status code of `201 Created`
-    (StatusCode::OK, Json(user))
-}
-
-#[derive(Debug, Serialize,  Deserialize)]
-struct PushNotification {
-    title: String,
-    body: String,
-}
-
-async fn send_notification(
-    Json(payload): Json<PushNotification>,
-) -> impl IntoResponse {
-    // insert your application logic here
-    let user = payload;
-
-    // this will be converted into a JSON response
-    // with a status code of `201 Created`
-    (StatusCode::OK, Json(user))
-}
-
-async fn ping() -> &'static str {
-    "pong"
 }
