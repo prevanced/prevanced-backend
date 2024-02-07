@@ -80,7 +80,7 @@ jobs:
         run: |
           git config --global user.email "prevanced.app@gmail.com"
           git config --global user.name "PreVanced"
-          git clone https://prevanced:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/prevanced/notification
+          git clone https://prevanced:${{ secrets.HF_TOKEN }}@huggingface.co/spaces/prevanced/backend
           cd notification
           sed -E 's/v[0-9]+\.[0-9]+\.[0-9]+/${{ github.ref_name }}/g' Dockerfile > temp_Dockerfile
           mv temp_Dockerfile Dockerfile
