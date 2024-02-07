@@ -14,7 +14,7 @@ async fn main() {
         // `GET /` goes to `root`
         .route("/", get(root))
         // `POST /users` goes to `create_user`
-        .route("/users", post(register_device));
+        .route("/register", post(register_device));
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());
     let address: String = std::env::var("ADDRESS").unwrap_or_else(|_| "127.0.0.1".to_string());
