@@ -6,8 +6,7 @@ micros:
     engine: custom
     dev: cargo run
     commands:
-      - curl https://www.cloudflare.com/cdn-cgi/trace/
-      - cargo build --release
-    run: ./prevanced-backend
+      - curl -O server https://github.com/prevanced/prevanced-backend/releases/latest/download/prevanced-backend
+    run: ./server
     include:
-      - target/release/prevanced-backend
+      - server
