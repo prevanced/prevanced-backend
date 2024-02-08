@@ -8,7 +8,7 @@ mod handlers;
 mod middleware;
 mod types;
 
-use auth::{authorize, register};
+use auth::{authorize};
 use handlers::*;
 use middleware::key_auth;
 
@@ -18,7 +18,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(root))
         .route("/", post(register))
-        .route("/", delete(delete_device).layer(from_fn(key_auth)))
+        .route("/", delete(delete_device))
         .route("/ping", get(ping))
         .route("/send", post(send_notification).layer(from_fn(key_auth)))
         .route("/authorize", post(authorize));

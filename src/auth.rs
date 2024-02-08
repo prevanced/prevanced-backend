@@ -15,33 +15,12 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fmt::Display;
 
-use crate::types::DeviceRegister;
-
 static KEYS: Lazy<Keys> = Lazy::new(|| {
     let jwt_secret = std::env::var("JWT_SECRET").expect("JWT_SECRET is not set");
     let client_secret = std::env::var("CLIENT_SECRET").expect("CLIENT_SECRET is not set");
 
     Keys::new(jwt_secret.as_bytes(), client_secret)
 });
-
-#[derive(Debug, Deserialize)]
-struct RegisteredDevice {
-    device_id: String,
-    fcm_token: String,
-}
-
-pub async fn register(claims: Claims, data: Json<DeviceRegister>) -> Result<String, AuthError> {
-    let device = RegisteredDevice {
-        device_id: claims.device_id,
-        fcm_token: data.fcm_token.to_owned(),
-    };
-
-    println!("Storing {} for {}", device.fcm_token, device.device_id);
-
-    // this will be converted into a JSON response
-    // with a status code of `201 Created`
-    Ok(device.fcm_token)
-}
 
 pub async fn authorize(Json(payload): Json<AuthPayload>) -> Result<Json<AuthBody>, AuthError> {
     // Check if the user sent the credentials
@@ -138,7 +117,7 @@ impl Keys {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
-    device_id: String,
+    pub device_id: String,
     exp: usize,
 }
 

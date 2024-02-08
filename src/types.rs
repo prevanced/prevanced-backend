@@ -10,3 +10,9 @@ pub struct PushNotification {
     title: String,
     body: String,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct RegisteredDevice {
+    pub device_id: String,
+    pub fcm_token: String,
+}

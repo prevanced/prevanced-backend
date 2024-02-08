@@ -4,6 +4,15 @@ use axum::{
     middleware::Next,
     response::Response,
 };
+use once_cell::sync::Lazy;
+
+struct SECRETS {
+    notification_secret: String,
+}
+
+static NOTIFICATION_SECRET: Lazy<SECRETS> = Lazy::new(|| SECRETS {
+    notification_secret: std::env::var("NOTIFICATION_SECRET").expect("NOTIFICATION_SECRET is not set"),
+});
 
 // Define your custom middleware for key-based authentication
 pub async fn key_auth(
@@ -32,5 +41,5 @@ fn get_token(headers: &HeaderMap) -> Option<&str> {
 }
 
 fn token_is_valid(token: &str) -> bool {
-    token == std::env::var("API_KEY").expect("API_KEY is not set")
+    token == NOTIFICATION_SECRET.notification_secret
 }
