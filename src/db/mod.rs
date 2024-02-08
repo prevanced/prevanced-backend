@@ -106,13 +106,9 @@ pub async fn get(fcm_token: &str) -> Result<(), DBError> {
     deta_req(uri, "GET", None).await
 }
 
-pub async fn all(last: String) -> Result<serde_json::Value, DBError> {
-    println!("API_BASE_URL: {}", API_BASE_URL.to_string());
-    println!("API_KEY: {}", API_KEY.to_string());
+pub async fn all(last: Option<String>) -> Result<serde_json::Value, DBError> {
     // GET /items
     let uri = format!("{}/{}", API_BASE_URL.as_str(), "query");
-
-    println!("last: {}", last);
 
     let body = serde_json::to_string(&serde_json::json!({
         "query": [],

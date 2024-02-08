@@ -1,5 +1,5 @@
 use crate::{auth::Claims, types::*};
-use axum::{http::StatusCode, response::IntoResponse, Json};
+use axum::{http::StatusCode, response::IntoResponse, Json, extract::Query};
 use crate::db::{insert, delete, all};
 
 // basic handler that responds with a static string
@@ -29,7 +29,13 @@ pub async fn delete_device(
     (StatusCode::OK, Json(user))
 }
 
-pub async fn get_all(last: String) -> impl IntoResponse {
+#[derive(serde::Deserialize)]
+pub struct Last {
+    last: Option<String>,
+}
+
+pub async fn get_all(Query(params): Query<Last>) -> impl IntoResponse {
+    let last = params.last;
     let all = all(last).await.expect("Failed to get all tokens");    
 
     // this will be converted into a JSON response
