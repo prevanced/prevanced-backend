@@ -25,12 +25,7 @@ jobs:
           rustup update --no-self-update stable
           rustup target add ${{ env.TARGET }}
           rustup default stable
-
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install musl-tools -y
-        
+          
       - name: Setup Cache
         uses: Swatinem/rust-cache@v2
         env:
