@@ -1,4 +1,4 @@
-use crate::{auth::{AuthError, Claims}, types::*};
+use crate::{auth::Claims, types::*};
 use axum::{http::StatusCode, response::IntoResponse, Json};
 
 // basic handler that responds with a static string
@@ -15,7 +15,10 @@ pub async fn register(claims: Claims, Json(payload): Json<DeviceRegister>) -> im
     (StatusCode::CREATED, Json(DeviceRegister { fcm_token }))
 }
 
-pub async fn delete_device(claims: Claims, Json(payload): Json<DeviceRegister>) -> impl IntoResponse {
+pub async fn delete_device(
+    claims: Claims,
+    Json(payload): Json<DeviceRegister>,
+) -> impl IntoResponse {
     // insert your application logic here
     let user = payload;
 
