@@ -8,7 +8,7 @@ mod handlers;
 mod middleware;
 mod types;
 
-use auth::{authorize};
+use auth::authorize;
 use handlers::*;
 use middleware::key_auth;
 
