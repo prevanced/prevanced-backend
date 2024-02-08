@@ -14,30 +14,8 @@ env:
 jobs:
   native-build:
     runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-
-          # - os: windows-latest
-          #   target: x86_64-pc-windows-msvc
-          #   extension: .exe
-
-          # - os: windows-latest
-          #   target: i686-pc-windows-msvc
-          #   extension: .exe
-
-          # - os: windows-latest
-          #   target: aarch64-pc-windows-msvc
-          #   extension: .exe
-
-          # - os: macos-latest
-          #   target: x86_64-apple-darwin
-
-          # - os: macos-latest
-          #   target: aarch64-apple-darwin
-
+    env:
+      TARGET: x86_64-unknown-linux-musl
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -45,29 +23,34 @@ jobs:
       - name: Setup Rust
         run: |
           rustup update --no-self-update stable
-          rustup target add ${{ matrix.target }}
+          rustup target add ${{ env.TARGET }}
           rustup default stable
 
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install musl-tools -y
+        
       - name: Setup Cache
         uses: Swatinem/rust-cache@v2
         env:
-          cache-name: cache-cargo-${{ matrix.target }}
+          cache-name: cache-cargo-${{ env.TARGET }}
         with:
           prefix-key: "prevanced-backend-v1"
           shared-key: ${{ runner.os }}-cargo-
-          key: ${{ runner.os }}-cargo-${{ matrix.target }}-
+          key: ${{ runner.os }}-cargo-${{ env.TARGET }}-
           cache-directories: |
             C:\Users\runneradmin\.cargo
             /Users/runner/.cargo
 
-      - name: Build for ${{ matrix.target }}
-        run: cargo build --release --target ${{ matrix.target }}
+      - name: Build
+        run: cargo build --release --target ${{ env.TARGET }}
 
       - name: Upload binaries to release
         if: ${{ github.event_name == 'release' }}
         run: |
-          mv target/${{ matrix.target }}/release/prevanced-backend target/${{ matrix.target }}/release/prevanced-backend-${{ github.ref_name }}
-          gh release upload ${{ github.ref_name }} target/${{ matrix.target }}/release/prevanced-backend-${{ github.ref_name }}
+          mv target/${{ env.TARGET }}/release/prevanced-backend target/${{ env.TARGET }}/release/prevanced-backend-${{ github.ref_name }}
+          gh release upload ${{ github.ref_name }} target/${{ env.TARGET }}/release/prevanced-backend-${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
