@@ -32,5 +32,5 @@ fn get_token(headers: &HeaderMap) -> Option<&str> {
 }
 
 fn token_is_valid(token: &str) -> bool {
-    token == "secret"
+    token == std::env::var("API_KEY").expect("API_KEY is not set")
 }
