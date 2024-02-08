@@ -1,5 +1,6 @@
 use crate::{auth::Claims, types::*};
 use axum::{http::StatusCode, response::IntoResponse, Json};
+use crate::db::{insert, delete, all};
 
 // basic handler that responds with a static string
 pub async fn root() -> &'static str {
@@ -10,32 +11,30 @@ pub async fn register(claims: Claims, Json(payload): Json<DeviceRegister>) -> im
     let device_id = claims.device_id;
     let fcm_token = payload.fcm_token;
 
-    println!("Storing {} for {}", fcm_token, device_id);
+    insert(&fcm_token, &device_id).await.expect(&format!("Failed to insert {}", fcm_token));
 
     (StatusCode::CREATED, Json(DeviceRegister { fcm_token }))
 }
 
 pub async fn delete_device(
-    claims: Claims,
     Json(payload): Json<DeviceRegister>,
 ) -> impl IntoResponse {
     // insert your application logic here
     let user = payload;
 
-    println!("Deleting {} for {}", user.fcm_token, claims.device_id);
+    delete(&user.fcm_token).await.expect(&format!("Failed to delete {}", user.fcm_token));
 
     // this will be converted into a JSON response
     // with a status code of `201 Created`
     (StatusCode::OK, Json(user))
 }
 
-pub async fn send_notification(Json(payload): Json<PushNotification>) -> impl IntoResponse {
-    // insert your application logic here
-    let user = payload;
+pub async fn get_all(last: String) -> impl IntoResponse {
+    let all = all(last).await.expect("Failed to get all tokens");    
 
     // this will be converted into a JSON response
     // with a status code of `201 Created`
-    (StatusCode::OK, Json(user))
+    (StatusCode::OK, Json(all))
 }
 
 pub async fn ping() -> &'static str {

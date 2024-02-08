@@ -7,6 +7,7 @@ mod auth;
 mod handlers;
 mod middleware;
 mod types;
+mod db;
 
 use auth::authorize;
 use handlers::*;
@@ -18,9 +19,9 @@ async fn main() {
     let app = Router::new()
         .route("/", get(root))
         .route("/", post(register))
-        .route("/", delete(delete_device))
+        .route("/", delete(delete_device).layer(from_fn(key_auth)))
         .route("/ping", get(ping))
-        .route("/send", post(send_notification).layer(from_fn(key_auth)))
+        .route("/all", get(get_all).layer(from_fn(key_auth)))
         .route("/authorize", post(authorize));
 
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());

@@ -7,17 +7,6 @@ pub struct DeviceRegister {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PushNotification {
-    title: String,
-    body: String,
+    pub title: String,
+    pub body: String,
 }
-
-pub struct DetaSecrets {
-    key: String,
-}
-
-use once_cell::sync::Lazy;
-
-pub static SECRETS: Lazy<DetaSecrets> = Lazy::new(|| DetaSecrets {
-    key: std::env::var("DETA_KEY").expect("DETA_KEY is not set"),
-});
-
