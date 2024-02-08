@@ -13,7 +13,7 @@ env:
 
 jobs:
   native-build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     env:
       TARGET: x86_64-unknown-linux-musl
     steps:
