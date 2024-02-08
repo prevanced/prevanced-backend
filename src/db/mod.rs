@@ -80,15 +80,14 @@ async fn deta_req(url: String, method: &str, body: Option<String>) -> Result<(),
 pub async fn insert(fcm_token: &str, device_id: &str) -> Result<(), DBError> {
     // POST /items
     let body = serde_json::to_string(&PostItems {
-        item: TokenItems {
+        items: vec![TokenItems {
             key: fcm_token.to_string(),
             device_id: device_id.to_string(),
-        },
+        }],
     })?;
-
     let uri = format!("{}/{}", API_BASE_URL.as_str(), "items");
 
-    deta_req(uri, "POST", Some(body)).await
+    deta_req(uri, "PUT", Some(body)).await
 }
 
 

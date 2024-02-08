@@ -16,7 +16,7 @@ pub struct TokenItems {
 
 #[derive(Serialize)]
 pub struct PostItems {
-    pub item: TokenItems,
+    pub items: Vec<TokenItems>,
 }
 
 #[derive(Debug)]
