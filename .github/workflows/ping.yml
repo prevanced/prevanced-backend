@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Send ping request
         run: |
-          response=$(curl -s --max-time 10 ${{ secrets.API_URL }})
+          response=$(curl -s --max-time 10 ${{ secrets.API_URL }}/ping)
           if [[ "$response" != "pong" ]]; then
             echo "Error: Expected 'pong', received '$response'"
             exit 1  # Mark the workflow as failed
