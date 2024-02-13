@@ -1,0 +1,21 @@
+name: Ping Check
+
+# Controls when the workflow will run
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Triggers at 00:00 UTC every day
+  workflow_dispatch:  # Allows you to run this workflow manually from the Actions tab
+
+jobs:
+  check_ping:
+    runs-on: ubuntu-latest  # Job will run on an Ubuntu virtual machine
+
+    steps:
+      - name: Send ping request
+        run: |
+          response=$(curl -s --max-time 10 ${{ secrets.API_URL }})
+          if [[ "$response" != "pong" ]]; then
+            echo "Error: Expected 'pong', received '$response'"
+            exit 1  # Mark the workflow as failed
+          fi
+          echo "Ping successful!"
