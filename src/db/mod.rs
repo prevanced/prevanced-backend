@@ -24,7 +24,7 @@ impl From<String> for DBError {
 
 async fn send(request: RequestBuilder) -> Result<Response, DBError> {
     let request_body = request.build()?;
-    let response = reqwest::Client::new().execute(request_body).await?;
+    let response = REQWEST_CLIENT.execute(request_body).await?;
     Ok(response)
 }
 
@@ -33,8 +33,7 @@ async fn deta_req(url: String, method: &str, body: Option<String>) -> Result<(),
     headers.insert("X-API-Key", API_KEY.parse().unwrap());
     headers.insert("Content-Type", "application/json".parse().unwrap());
 
-    let client = reqwest::Client::new();
-    let request = client
+    let request = REQWEST_CLIENT
         .request(Method::from_bytes(method.as_bytes()).unwrap(), url)
         .headers(headers);
 
@@ -51,7 +50,6 @@ async fn deta_req(url: String, method: &str, body: Option<String>) -> Result<(),
         Err(DBError::from(format!("Status code: {}", response.status())))
     }
 }
-
 
 pub async fn insert(fcm_token: &str, device_id: &str) -> Result<(), DBError> {
     // POST /items
@@ -84,14 +82,12 @@ pub async fn all(last: Option<String>) -> Result<serde_json::Value, DBError> {
     // GET /items
     let uri = format!("{}/{}", API_BASE_URL.as_str(), "query");
 
-    let client = reqwest::Client::new();
-
     let body = serde_json::to_string(&serde_json::json!({
         "query": [],
         "last": last,
     }))?;
 
-    let response = client
+    let response = REQWEST_CLIENT
         .post(uri)
         .header("X-API-Key", API_KEY.as_str())
         .header("Content-Type", "application/json")
@@ -115,4 +111,3 @@ pub async fn all(last: Option<String>) -> Result<serde_json::Value, DBError> {
         Err(DBError::from(format!("Status code: {}", status)))
     }
 }
-
