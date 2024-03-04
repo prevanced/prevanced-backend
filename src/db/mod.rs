@@ -1,36 +1,12 @@
-use core::fmt;
-use std::fmt::{Display, Formatter};
-
-use isahc::error::Error as IsahcError;
-use isahc::http::Error as IsahcHttpError;
-use isahc::http::{Request, Response};
-use isahc::{AsyncReadResponseExt, Body, RequestExt};
-
+use reqwest::{header::HeaderMap, Error, Method, RequestBuilder, Response};
 
 mod types;
 
 use types::*;
 
-impl Display for DBError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            DBError::IsahcError(e) => write!(f, "IsahcError: {}", e),
-            DBError::IsahcHttpError(e) => write!(f, "IsahcHttpError: {}", e),
-            DBError::SerdeError(e) => write!(f, "SerdeError: {}", e),
-            DBError::Others(e) => write!(f, "Others: {}", e),
-        }
-    }
-}
-
-impl From<IsahcError> for DBError {
-    fn from(e: IsahcError) -> Self {
-        DBError::IsahcError(e)
-    }
-}
-
-impl From<IsahcHttpError> for DBError {
-    fn from(e: IsahcHttpError) -> Self {
-        DBError::IsahcHttpError(e)
+impl From<Error> for DBError {
+    fn from(e: Error) -> Self {
+        DBError::ReqwestError(e)
     }
 }
 
@@ -46,36 +22,36 @@ impl From<String> for DBError {
     }
 }
 
-fn send(request: Request<String>) -> Result<Response<Body>, DBError> {
-    let response = isahc::send(request)?;
-
+async fn send(request: RequestBuilder) -> Result<Response, DBError> {
+    let request_body = request.build()?;
+    let response = reqwest::Client::new().execute(request_body).await?;
     Ok(response)
 }
 
 async fn deta_req(url: String, method: &str, body: Option<String>) -> Result<(), DBError> {
-    let headers = [
-        ("X-API-Key", API_KEY.as_str()),
-        ("Content-Type", "application/json"),
-    ];
+    let mut headers = HeaderMap::new();
+    headers.insert("X-API-Key", API_KEY.parse().unwrap());
+    headers.insert("Content-Type", "application/json".parse().unwrap());
 
-    let mut request = isahc::Request::builder().method(method).uri(url);
+    let client = reqwest::Client::new();
+    let request = client
+        .request(Method::from_bytes(method.as_bytes()).unwrap(), url)
+        .headers(headers);
 
-    for item in headers.iter() {
-        request = request.header(item.0, item.1);
-    }
+    let request = match body {
+        Some(body_str) => request.body(body_str),
+        None => request,
+    };
 
-    let request = request.body(body.unwrap_or_default()).unwrap();
+    let response = send(request).await?;
 
-    let response = send(request)?;
-
-    let status = response.status();
-
-    if status.is_success() {
+    if response.status().is_success() {
         Ok(())
     } else {
-        Err(DBError::from(format!("Status code: {}", status)))
+        Err(DBError::from(format!("Status code: {}", response.status())))
     }
 }
+
 
 pub async fn insert(fcm_token: &str, device_id: &str) -> Result<(), DBError> {
     // POST /items
@@ -90,7 +66,6 @@ pub async fn insert(fcm_token: &str, device_id: &str) -> Result<(), DBError> {
     deta_req(uri, "PUT", Some(body)).await
 }
 
-
 pub async fn delete(fcm_token: &str) -> Result<(), DBError> {
     // DELETE /items/{key}
     let uri = format!("{}/{}/{}", API_BASE_URL.as_str(), "items", fcm_token);
@@ -98,27 +73,30 @@ pub async fn delete(fcm_token: &str) -> Result<(), DBError> {
     deta_req(uri, "DELETE", None).await
 }
 
-pub async fn get(fcm_token: &str) -> Result<(), DBError> {
-    // GET /items/{key}
-    let uri = format!("{}/{}/{}", API_BASE_URL.as_str(), "items", fcm_token);
+// pub async fn get(fcm_token: &str) -> Result<(), DBError> {
+//     // GET /items/{key}
+//     let uri = format!("{}/{}/{}", API_BASE_URL.as_str(), "items", fcm_token);
 
-    deta_req(uri, "GET", None).await
-}
+//     deta_req(uri, "GET", None).await
+// }
 
 pub async fn all(last: Option<String>) -> Result<serde_json::Value, DBError> {
     // GET /items
     let uri = format!("{}/{}", API_BASE_URL.as_str(), "query");
+
+    let client = reqwest::Client::new();
 
     let body = serde_json::to_string(&serde_json::json!({
         "query": [],
         "last": last,
     }))?;
 
-    let mut response = isahc::Request::post(uri)
+    let response = client
+        .post(uri)
         .header("X-API-Key", API_KEY.as_str())
         .header("Content-Type", "application/json")
-        .body(body)? // TODO: Fix this
-        .send_async()
+        .body(body)
+        .send()
         .await?;
 
     let status = response.status();
@@ -137,3 +115,4 @@ pub async fn all(last: Option<String>) -> Result<serde_json::Value, DBError> {
         Err(DBError::from(format!("Status code: {}", status)))
     }
 }
+
