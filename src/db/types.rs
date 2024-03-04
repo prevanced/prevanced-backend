@@ -1,20 +1,19 @@
 use once_cell::sync::Lazy;
+use reqwest_hickory_resolver::HickoryResolver;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-use std::{
-    net::SocketAddr,
-    str::FromStr,
-};
+
+use std::sync::Arc;
 
 pub static API_BASE_URL: Lazy<String> =
     Lazy::new(|| std::env::var("API_BASE_URL").expect("API_BASE_URL is not set"));
 
-pub static API_KEY: Lazy<String> = Lazy::new(|| std::env::var("API_KEY").expect("API_KEY is not set"));
+pub static API_KEY: Lazy<String> =
+    Lazy::new(|| std::env::var("API_KEY").expect("API_KEY is not set"));
 
 pub static REQWEST_CLIENT: Lazy<reqwest::Client> = Lazy::new(|| {
     reqwest::Client::builder()
-        .resolve("database.deta.sh", SocketAddr::from_str("75.2.69.226:443").expect("Invalid IP"))
-        .resolve("database.deta.sh", SocketAddr::from_str("76.223.55.44:443").expect("Invalid IP"))
+        .dns_resolver(Arc::new(HickoryResolver::default()))
         .build()
         .expect("Failed to create reqwest client")
 });
@@ -32,7 +31,7 @@ pub struct PostItems {
 
 #[derive(Debug)]
 pub enum DBError {
-    ReqwestError(reqwest::Error), 
+    ReqwestError(reqwest::Error),
     SerdeError(serde_json::Error),
     Others(String),
 }
